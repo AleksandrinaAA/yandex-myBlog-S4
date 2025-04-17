@@ -2,6 +2,7 @@ package yandex.infrastructure;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import yandex.model.dto.PostDto;
 import yandex.model.entities.Post;
@@ -14,6 +15,8 @@ public class PostController {
 
     @Autowired
     private PostService postService;
+    @Autowired
+    private PostMapper postMapper;
 
     @GetMapping("/")
     public String home() {
@@ -21,7 +24,8 @@ public class PostController {
     }
 
     @GetMapping("/posts")
-    public String getPosts() {
+    public String getPosts(Model model) {
+        model.addAttribute("posts", postService.readAllPosts());
         return "posts";
     }
 
@@ -32,7 +36,7 @@ public class PostController {
 
     @PostMapping("/posts")
     public Post savePost(@ModelAttribute PostDto postDto) {
-        Post post = PostMapper.toEntity(postDto);
+        Post post = postMapper.toEntity(postDto);
         return postService.create(post);
     }
 

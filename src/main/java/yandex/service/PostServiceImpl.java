@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import yandex.model.entities.Post;
 import yandex.repository.PostRepository;
 
+import java.util.List;
+
 @Service
 public class PostServiceImpl implements PostService {
     @Autowired
@@ -15,5 +17,10 @@ public class PostServiceImpl implements PostService {
     @Override
     public Post create(Post post) {
         return postRepository.save(post);
+    }
+
+    @Override
+    public List<Post> readAllPosts() {
+        return postRepository.findAll();
     }
 }
