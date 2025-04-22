@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PostDto {
+public class CreatePostDto {
 
     private String title;
     private String tags;

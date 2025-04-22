@@ -4,10 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import yandex.model.dto.PostDto;
+import yandex.model.dto.CreatePostDto;
+import yandex.model.dto.ReturnPostDto;
 import yandex.model.entities.Post;
 import yandex.model.mappers.PostMapper;
 import yandex.service.PostService;
+
+import java.util.List;
 
 @Controller
 @RequestMapping
@@ -25,7 +28,9 @@ public class PostController {
 
     @GetMapping("/posts")
     public String getPosts(Model model) {
-        model.addAttribute("posts", postService.readAllPosts());
+        List<Post> posts = postService.readAllPosts();
+        List<ReturnPostDto> returnPostDtos = posts.stream().map(post -> postMapper.toReturnedDTO(post)).toList();
+        model.addAttribute("posts", returnPostDtos);
         return "posts";
     }
 
@@ -35,8 +40,8 @@ public class PostController {
     }
 
     @PostMapping("/posts")
-    public Post savePost(@ModelAttribute PostDto postDto) {
-        Post post = postMapper.toEntity(postDto);
+    public Post savePost(@ModelAttribute CreatePostDto createPostDto) {
+        Post post = postMapper.toCreatedEntity(createPostDto);
         return postService.create(post);
     }
 

@@ -9,7 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import yandex.AppConfig;
 import yandex.infrastructure.PostController;
-import yandex.model.dto.PostDto;
+import yandex.model.dto.CreatePostDto;
 
 import java.io.UnsupportedEncodingException;
 
@@ -23,12 +23,12 @@ class PostServiceTest {
 
     @Test
     void successfulSaveNewPost() throws UnsupportedEncodingException {
-        PostDto postDto = new PostDto();
-        postDto.setTitle("test post");
-        postDto.setTags("tag");
-        postDto.setText("I wrote post");
-        postDto.setImage(new MockMultipartFile("image", "test.jpg", "image/jpeg", "test.jpg".getBytes("UTF-8")));
-        postController.savePost(postDto);
+        CreatePostDto createPostDto = new CreatePostDto();
+        createPostDto.setTitle("test post");
+        createPostDto.setTags("tag");
+        createPostDto.setText("I wrote post");
+        createPostDto.setImage(new MockMultipartFile("image", "test.jpg", "image/jpeg", "test.jpg".getBytes("UTF-8")));
+        postController.savePost(createPostDto);
 
 
     }
