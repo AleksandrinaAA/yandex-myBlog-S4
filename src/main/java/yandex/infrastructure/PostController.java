@@ -1,54 +1,92 @@
 package yandex.infrastructure;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import yandex.model.dto.CreatePostDto;
-import yandex.model.dto.ReturnPostDto;
-import yandex.model.entities.Post;
-import yandex.model.mappers.PostMapper;
+import org.springframework.web.multipart.MultipartFile;
+import yandex.model.dto.Post;
 import yandex.service.PostService;
 
-import java.util.List;
+import java.io.IOException;
 
+@RequiredArgsConstructor
 @Controller
-@RequestMapping
+@RequestMapping("/posts")
 public class PostController {
 
-    @Autowired
-    private PostService postService;
-    @Autowired
-    private PostMapper postMapper;
-
-    @GetMapping("/")
-    public String home() {
-        return "redirect:/posts";
-    }
+    private final PostService postService;
 
     @GetMapping("/posts")
-    public String getPosts(Model model) {
-        List<Post> posts = postService.readAllPosts();
-        List<ReturnPostDto> returnPostDtos = posts.stream().map(post -> postMapper.toReturnedDTO(post)).toList();
-        model.addAttribute("posts", returnPostDtos);
+    public String getPosts(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            Model model) {
+
+        model.addAttribute("posts", postService.getPosts(pageNumber, pageSize, search));
+        model.addAttribute("search", search);
+        model.addAttribute("paging", postService.getPaging(pageNumber, pageSize, search));
         return "posts";
     }
 
+    @GetMapping("/posts/{id}")
+    public String getPost(@PathVariable Long id, Model model) {
+        model.addAttribute("post", postService.getPost(id));
+        return "post";
+    }
+
     @GetMapping("/posts/add")
-    public String addPost() {
-        return "add-post";
+    public String addPostForm(Model model) {
+        model.addAttribute("post", new Post());
+        return "post-add";
     }
 
     @PostMapping("/posts")
-    public Post savePost(@ModelAttribute CreatePostDto createPostDto) {
-        Post post = postMapper.toCreatedEntity(createPostDto);
-        return postService.create(post);
+    public String addPost(
+            @RequestParam String title,
+            @RequestParam String text,
+            @RequestParam(required = false) MultipartFile image,
+            @RequestParam(defaultValue = "") String tags) {
+
+        Post post = new Post();
+        post.setTitle(title);
+        post.setText(text);
+        // Обработка тегов
+        Post savedPost = postService.savePost(post, image);
+        return "redirect:/posts/" + savedPost.getId();
     }
 
-//    @PostMapping("/posts/{id}")
-//    private String editPost(@PathVariable(required = false) String id) {
-//        return "posts";
-//    }
+    @GetMapping("/posts/{id}/edit")
+    public String editPostForm(@PathVariable Long id, Model model) {
+        model.addAttribute("post", postService.getPost(id));
+        return "post-add";
+    }
 
+    @PostMapping("/posts/{id}")
+    public String updatePost(
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam String text,
+            @RequestParam(required = false) MultipartFile image,
+            @RequestParam(defaultValue = "") String tags) {
 
+        Post post = postService.getPost(id);
+        post.setTitle(title);
+        post.setText(text);
+        postService.savePost(post, image);
+        return "redirect:/posts/" + id;
+    }
+
+    @PostMapping("/posts/{id}/delete")
+    public String deletePost(@PathVariable Long id) {
+        postService.deletePost(id);
+        return "redirect:/posts";
+    }
+
+    @GetMapping("/images/{id}")
+    @ResponseBody
+    public byte[] getImage(@PathVariable Long id) throws IOException {
+        return postService.loadImage(id);
+    }
 }
